@@ -157,5 +157,30 @@
     ],
     "qualityScore": 6,
     "topicConfidence": 2
+  },
+  {
+    "title": "Stop Asking AI What to Write About - Start Solving Real Problems",
+    "metaDescription": "Businesses are drowning in AI content without purpose. Here's why you should focus on solving customer problems, not feeding the content machine.",
+    "slug": "2026-02-26-stop-asking-ai-what-to-write-start-solving-problems",
+    "date": "2026-02-26",
+    "displayDate": "February 26, 2026",
+    "tags": [
+      "content strategy",
+      "ai content",
+      "digital marketing",
+      "customer research"
+    ],
+    "sources": [
+      {
+        "name": "Google Search Quality Guidelines",
+        "url": "https://developers.google.com/search/docs/fundamentals/creating-helpful-content"
+      },
+      {
+        "name": "Semrush State of Content Marketing Report 2024",
+        "url": "https://www.semrush.com/blog/content-marketing-statistics/"
+      }
+    ],
+    "qualityScore": 6,
+    "topicConfidence": 10
   }
 ]

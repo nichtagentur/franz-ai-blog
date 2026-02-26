@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How the AI Blog Works -- Franz AI Blog</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=DM+Sans:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #0a0a0a;
+    --text: #f5f0e8;
+    --dim: #888;
+    --accent: #e63946;
+    --accent2: #2ec4b6;
+    --accent3: #f4a261;
+    --code-bg: #1a1a1a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-snap-type: y mandatory; overflow-y: scroll; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Each slide = full viewport */
+  .slide {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem 6rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Slide number */
+  .slide::after {
+    content: attr(data-slide);
+    position: absolute;
+    bottom: 2rem;
+    right: 3rem;
+    font-size: 0.9rem;
+    color: #333;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+  }
+
+  /* Navigation hint */
+  .slide:first-child::before {
+    content: 'SCROLL DOWN';
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    color: #444;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 4.5rem;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 3.2rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 1.6rem;
+    color: var(--dim);
+    line-height: 1.5;
+    max-width: 700px;
+  }
+
+  .accent { color: var(--accent); }
+  .accent2 { color: var(--accent2); }
+  .accent3 { color: var(--accent3); }
+
+  /* Big number callouts */
+  .big-number {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 8rem;
+    line-height: 1;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+
+  /* Step cards */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+
+  .step {
+    background: var(--code-bg);
+    border: 1px solid #2a2a2a;
+    padding: 2rem;
+    border-radius: 4px;
+    position: relative;
+  }
+
+  .step-num {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 3rem;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+
+  .step h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .step p {
+    font-size: 1rem;
+    color: var(--dim);
+    line-height: 1.5;
+  }
+
+  .step .api-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    margin-top: 0.75rem;
+  }
+
+  .tag-perplexity { background: #1a3a2a; color: #4ade80; }
+  .tag-claude { background: #2a1a1a; color: #f87171; }
+  .tag-gemini { background: #1a2a3a; color: #60a5fa; }
+  .tag-node { background: #2a2a1a; color: #fbbf24; }
+  .tag-github { background: #1a1a2a; color: #a78bfa; }
+
+  /* Pipeline flow */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .pipe-box {
+    background: var(--code-bg);
+    border: 2px solid #333;
+    padding: 1.2rem 1.8rem;
+    text-align: center;
+    border-radius: 4px;
+    min-width: 140px;
+  }
+
+  .pipe-box.active { border-color: var(--accent); }
+
+  .pipe-box .pipe-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--dim);
+    margin-bottom: 0.3rem;
+  }
+
+  .pipe-box .pipe-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .pipe-arrow {
+    font-size: 1.5rem;
+    color: #444;
+  }
+
+  /* Cost table */
+  .cost-table {
+    margin-top: 2rem;
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 700px;
+  }
+
+  .cost-table th, .cost-table td {
+    text-align: left;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #222;
+    font-size: 1.2rem;
+  }
+
+  .cost-table th {
+    color: var(--dim);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 500;
+  }
+
+  .cost-table .total td {
+    border-top: 2px solid var(--accent);
+    border-bottom: none;
+    font-weight: 700;
+    font-size: 1.4rem;
+  }
+
+  /* File tree */
+  .file-tree {
+    font-family: 'DM Mono', 'SF Mono', monospace;
+    font-size: 1.05rem;
+    line-height: 2;
+    color: var(--dim);
+    background: var(--code-bg);
+    padding: 2rem 2.5rem;
+    border-radius: 4px;
+    border: 1px solid #2a2a2a;
+    margin-top: 1.5rem;
+    max-width: 600px;
+  }
+
+  .file-tree .highlight { color: var(--text); font-weight: 700; }
+  .file-tree .accent-file { color: var(--accent); font-weight: 700; }
+
+  /* Two-col layout */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  /* Bullet list */
+  .bullets {
+    list-style: none;
+    margin-top: 1.5rem;
+  }
+
+  .bullets li {
+    font-size: 1.4rem;
+    padding: 0.6rem 0;
+    padding-left: 1.5rem;
+    position: relative;
+    line-height: 1.4;
+  }
+
+  .bullets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1.1rem;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+  }
+
+  .bullets li span { color: var(--dim); font-size: 1.1rem; }
+
+  /* Automation diagram */
+  .auto-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 2rem;
+    max-width: 700px;
+  }
+
+  .auto-step {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .auto-step .auto-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .auto-step .auto-text { font-size: 1.2rem; }
+  .auto-step .auto-text span { color: var(--dim); font-size: 1rem; }
+
+  .icon-clock { background: #2a1a3a; color: #c084fc; }
+  .icon-code { background: #1a2a1a; color: #4ade80; }
+  .icon-ai { background: #2a1a1a; color: #f87171; }
+  .icon-build { background: #2a2a1a; color: #fbbf24; }
+  .icon-push { background: #1a1a2a; color: #60a5fa; }
+  .icon-live { background: #1a2a2a; color: #2dd4bf; }
+
+  /* Title slide special */
+  .slide-title {
+    border-bottom: 4px solid var(--accent);
+  }
+
+  .slide-title h1 {
+    font-size: 5.5rem;
+  }
+
+  .meta-line {
+    font-size: 1rem;
+    color: #444;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin-top: 2rem;
+  }
+
+  /* Section divider slides */
+  .slide-section {
+    text-align: center;
+    align-items: center;
+  }
+
+  .slide-section h2 {
+    font-size: 4rem;
+  }
+
+  .slide-section .section-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--accent);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .slide { padding: 2rem 2rem; }
+    h1 { font-size: 3rem; }
+    h2 { font-size: 2.2rem; }
+    .slide-title h1 { font-size: 3.5rem; }
+    .steps { grid-template-columns: 1fr; }
+    .two-col { grid-template-columns: 1fr; gap: 2rem; }
+    .big-number { font-size: 5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== SLIDE 1: TITLE ========== -->
+<div class="slide slide-title" data-slide="01">
+  <h1>How This <span class="accent">AI Blog</span> Runs Itself</h1>
+  <p class="subtitle">From trending news to published article in 90 seconds. Zero human input. $0.11 per post.</p>
+  <div class="meta-line">Franz AI Blog &middot; Feb 26, 2026</div>
+</div>
+
+<!-- ========== SLIDE 2: THE IDEA ========== -->
+<div class="slide" data-slide="02">
+  <h2>The Goal</h2>
+  <ul class="bullets">
+    <li>Find trending AI business news <span>-- automatically</span></li>
+    <li>Write a quality article about it <span>-- with AI</span></li>
+    <li>Generate a featured image <span>-- with AI</span></li>
+    <li>Publish to a live website <span>-- no human needed</span></li>
+    <li>Repeat every hour <span>-- all day</span></li>
+  </ul>
+</div>
+
+<!-- ========== SLIDE 3: SECTION - CONTENT ========== -->
+<div class="slide slide-section" data-slide="03">
+  <div class="section-num">Part One</div>
+  <h2>The Content <span class="accent">Pipeline</span></h2>
+  <p class="subtitle" style="text-align:center">Three AI models, one script, zero dependencies</p>
+</div>
+
+<!-- ========== SLIDE 4: THE 5 STEPS ========== -->
+<div class="slide" data-slide="04">
+  <h2>Five Steps Per Article</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Discover News</h3>
+      <p>Ask Perplexity: "What's trending in AI business tools right now?"</p>
+      <span class="api-tag tag-perplexity">Perplexity Sonar</span>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Write Article</h3>
+      <p>Claude writes 400-600 words with TL;DR, SEO metadata, tags</p>
+      <span class="api-tag tag-claude">Claude Sonnet</span>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Generate Image</h3>
+      <p>Gemini creates an editorial illustration as hero image</p>
+      <span class="api-tag tag-gemini">Gemini Flash</span>
+    </div>
+  </div>
+  <div class="steps" style="margin-top:1rem; grid-template-columns: repeat(2, 1fr);">
+    <div class="step">
+      <div class="step-num">4</div>
+      <h3>Build HTML</h3>
+      <p>Render article page, update homepage, RSS feed, sitemap, JSON registry</p>
+      <span class="api-tag tag-node">Node.js</span>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <h3>Publish</h3>
+      <p>Git commit + push. GitHub Pages auto-deploys in seconds.</p>
+      <span class="api-tag tag-github">GitHub Pages</span>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 5: STEP 1 DETAIL ========== -->
+<div class="slide" data-slide="05">
+  <div class="two-col">
+    <div>
+      <h2>Step 1: <span class="accent2">Discover</span></h2>
+      <ul class="bullets">
+        <li>Calls <strong>Perplexity Sonar</strong> via OpenRouter</li>
+        <li>Asks for 5 trending AI business stories</li>
+        <li>Returns topic + summary + source URLs</li>
+        <li>Checks against published articles <span>-- no duplicates</span></li>
+      </ul>
+    </div>
+    <div class="pipe-box" style="padding:2rem; min-width:auto;">
+      <div class="pipe-label">AI prompt</div>
+      <div style="text-align:left; color:var(--dim); font-size:1rem; line-height:1.6; margin-top:0.5rem;">
+        "Find 5 trending AI tools / business news stories from the last 48 hours..."<br><br>
+        Already covered: <span class="accent">[skip list]</span><br><br>
+        Return JSON: topic, summary, sources
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 6: STEP 2 DETAIL ========== -->
+<div class="slide" data-slide="06">
+  <div class="two-col">
+    <div>
+      <h2>Step 2: <span class="accent">Write</span></h2>
+      <ul class="bullets">
+        <li>Calls <strong>Claude Sonnet</strong> via Anthropic API</li>
+        <li>Writes as "Franz Enzenhofer" <span>-- real author voice</span></li>
+        <li>400-600 words, starts with TL;DR</li>
+        <li>Returns structured JSON:</li>
+      </ul>
+    </div>
+    <div class="pipe-box" style="padding:2rem; min-width:auto;">
+      <div class="pipe-label">Claude returns</div>
+      <div style="text-align:left; color:var(--dim); font-size:0.95rem; line-height:1.8; margin-top:0.5rem; font-family: monospace;">
+        {<br>
+        &nbsp;&nbsp;<span class="accent">"title"</span>: "50-65 chars",<br>
+        &nbsp;&nbsp;<span class="accent">"metaDescription"</span>: "155-160 chars",<br>
+        &nbsp;&nbsp;<span class="accent">"slug"</span>: "url-slug",<br>
+        &nbsp;&nbsp;<span class="accent">"content"</span>: "markdown...",<br>
+        &nbsp;&nbsp;<span class="accent">"tags"</span>: ["ai", "tools"],<br>
+        &nbsp;&nbsp;<span class="accent">"sources"</span>: [{name, url}],<br>
+        &nbsp;&nbsp;<span class="accent">"imagePrompt"</span>: "..."<br>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 7: STEP 3 DETAIL ========== -->
+<div class="slide" data-slide="07">
+  <div class="two-col">
+    <div>
+      <h2>Step 3: <span class="accent3">Image</span></h2>
+      <ul class="bullets">
+        <li>Calls <strong>Gemini 2.5 Flash</strong> image generation</li>
+        <li>"Nano Banana" -- Google's image model</li>
+        <li>Prompt: editorial illustration, no text</li>
+        <li>Returns base64 PNG, saved to article folder</li>
+        <li>Fallback: 1x1 placeholder if generation fails</li>
+      </ul>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:6rem; line-height:1;">AI</div>
+      <div style="font-size:1.5rem; margin:0.5rem 0;">&#8595;</div>
+      <div style="width:300px; height:170px; background:#1a1a1a; border:2px solid #333; display:flex; align-items:center; justify-content:center; margin:0 auto; font-size:1.1rem; color:var(--dim);">featured.png</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 8: STEP 4-5 BUILD ========== -->
+<div class="slide" data-slide="08">
+  <h2>Steps 4-5: <span class="accent2">Build</span> + Publish</h2>
+  <p class="subtitle">Inline markdown parser + HTML templates. No npm, no frameworks.</p>
+  <div class="pipeline" style="margin-top:2rem;">
+    <div class="pipe-box">
+      <div class="pipe-label">Markdown</div>
+      <div class="pipe-name">Article text</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-box">
+      <div class="pipe-label">Parser</div>
+      <div class="pipe-name">md2html()</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-box">
+      <div class="pipe-label">Template</div>
+      <div class="pipe-name">{{CONTENT}}</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-box active">
+      <div class="pipe-label">Output</div>
+      <div class="pipe-name">index.html</div>
+    </div>
+  </div>
+  <p style="margin-top:2rem; color:var(--dim); font-size:1.1rem;">Also regenerates: homepage, RSS feed, sitemap.xml, articles.json</p>
+</div>
+
+<!-- ========== SLIDE 9: SEO ========== -->
+<div class="slide" data-slide="09">
+  <h2>Built-in <span class="accent">SEO</span></h2>
+  <div class="steps" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="step">
+      <h3>On-Page</h3>
+      <p>Title tags 50-65 chars<br>Meta descriptions 155-160<br>H1-H6 hierarchy<br>Image alt text</p>
+    </div>
+    <div class="step">
+      <h3>Schema</h3>
+      <p>JSON-LD BlogPosting<br>Author entity (E-E-A-T)<br>Open Graph tags<br>Twitter Cards</p>
+    </div>
+    <div class="step">
+      <h3>Technical</h3>
+      <p>Canonical URLs<br>sitemap.xml<br>robots.txt<br>RSS feed</p>
+    </div>
+  </div>
+  <p style="margin-top:2rem; color:var(--dim); font-size:1.1rem;">All generated automatically by the script. Every article, every time.</p>
+</div>
+
+<!-- ========== SLIDE 10: SECTION - AUTOMATION ========== -->
+<div class="slide slide-section" data-slide="10">
+  <div class="section-num">Part Two</div>
+  <h2>The <span class="accent">Automation</span></h2>
+  <p class="subtitle" style="text-align:center">GitHub Actions runs the script on a schedule</p>
+</div>
+
+<!-- ========== SLIDE 11: AUTOMATION FLOW ========== -->
+<div class="slide" data-slide="11">
+  <h2>Hourly Automation</h2>
+  <div class="auto-flow">
+    <div class="auto-step">
+      <div class="auto-icon icon-clock">1</div>
+      <div class="auto-text">
+        <strong>Cron trigger</strong><br>
+        <span>GitHub Actions fires every hour (or manual trigger)</span>
+      </div>
+    </div>
+    <div class="auto-step">
+      <div class="auto-icon icon-code">2</div>
+      <div class="auto-text">
+        <strong>Checkout repo</strong><br>
+        <span>Fresh clone + Node 22 setup</span>
+      </div>
+    </div>
+    <div class="auto-step">
+      <div class="auto-icon icon-ai">3</div>
+      <div class="auto-text">
+        <strong>Run generate.js</strong><br>
+        <span>API keys from GitHub Secrets -- discover, write, image, build</span>
+      </div>
+    </div>
+    <div class="auto-step">
+      <div class="auto-icon icon-push">4</div>
+      <div class="auto-text">
+        <strong>Git commit + push</strong><br>
+        <span>Only if changes exist (smart diff check)</span>
+      </div>
+    </div>
+    <div class="auto-step">
+      <div class="auto-icon icon-live">5</div>
+      <div class="auto-text">
+        <strong>GitHub Pages deploys</strong><br>
+        <span>Live at nichtagentur.github.io/franz-ai-blog in ~30 seconds</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 12: DEDUP ========== -->
+<div class="slide" data-slide="12">
+  <div class="two-col">
+    <div>
+      <h2>Smart <span class="accent2">Dedup</span></h2>
+      <ul class="bullets">
+        <li><strong>articles.json</strong> tracks every published article</li>
+        <li>Titles sent to Perplexity as "skip these"</li>
+        <li>No duplicate topics, ever</li>
+        <li>Git diff check -- no empty commits</li>
+      </ul>
+    </div>
+    <div class="file-tree">
+      <span class="accent-file">docs/articles.json</span><br>
+      [<br>
+      &nbsp;&nbsp;{ title: "<span class="highlight">Claude Opus 4.6...</span>" },<br>
+      &nbsp;&nbsp;{ title: "<span class="highlight">Gemini 3.1 Pro...</span>" },<br>
+      &nbsp;&nbsp;{ title: "<span class="highlight">Code Security...</span>" },<br>
+      &nbsp;&nbsp;{ title: "<span class="highlight">New Relic...</span>" }<br>
+      ]
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 13: COST ========== -->
+<div class="slide" data-slide="13">
+  <h2>Cost Per Article</h2>
+  <table class="cost-table">
+    <tr>
+      <th>Step</th>
+      <th>Model</th>
+      <th>Cost</th>
+    </tr>
+    <tr>
+      <td>News discovery</td>
+      <td><span class="accent2">Perplexity Sonar</span></td>
+      <td>~$0.02</td>
+    </tr>
+    <tr>
+      <td>Article writing</td>
+      <td><span class="accent">Claude Sonnet</span></td>
+      <td>~$0.08</td>
+    </tr>
+    <tr>
+      <td>Image generation</td>
+      <td><span class="accent3">Gemini Flash</span></td>
+      <td>~$0.01</td>
+    </tr>
+    <tr class="total">
+      <td>Total</td>
+      <td></td>
+      <td>$0.11</td>
+    </tr>
+  </table>
+  <p style="margin-top:2rem; color:var(--dim); font-size:1.2rem;">24 articles/day = <strong style="color:var(--text);">$2.64</strong>. Hosting: <strong style="color:var(--text);">free</strong> (GitHub Pages).</p>
+</div>
+
+<!-- ========== SLIDE 14: ARCHITECTURE ========== -->
+<div class="slide" data-slide="14">
+  <h2>One File. Zero Dependencies.</h2>
+  <div class="two-col">
+    <div class="file-tree">
+      <span class="accent-file">generate.js</span> <span style="color:#555">-- THE script</span><br>
+      templates/<br>
+      &nbsp;&nbsp;<span class="highlight">article.html</span> <span style="color:#555">-- SEO template</span><br>
+      &nbsp;&nbsp;<span class="highlight">index.html</span> <span style="color:#555">-- homepage</span><br>
+      docs/ <span style="color:#555">-- GitHub Pages root</span><br>
+      &nbsp;&nbsp;articles/<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;2026-02-26-slug/<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;index.html<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;featured.png<br>
+      &nbsp;&nbsp;<span class="highlight">articles.json</span> <span style="color:#555">-- registry</span><br>
+      &nbsp;&nbsp;rss.xml / sitemap.xml<br>
+      .github/workflows/<br>
+      &nbsp;&nbsp;<span class="accent-file">publish.yml</span> <span style="color:#555">-- hourly cron</span>
+    </div>
+    <div>
+      <ul class="bullets">
+        <li><strong>~350 lines</strong> of JavaScript</li>
+        <li>Node 22 native fetch <span>-- no npm install</span></li>
+        <li>Inline markdown parser <span>-- 30 lines</span></li>
+        <li>Template system: <span>find/replace {{VARS}}</span></li>
+        <li>Total build time: <span>~90 seconds</span></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 15: FULL PIPELINE ========== -->
+<div class="slide" data-slide="15">
+  <h2>The Full Pipeline</h2>
+  <div class="pipeline">
+    <div class="pipe-box">
+      <div class="pipe-label">Cron / Manual</div>
+      <div class="pipe-name">Trigger</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-box">
+      <div class="pipe-label">Perplexity</div>
+      <div class="pipe-name accent2">Discover</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-box">
+      <div class="pipe-label">Claude</div>
+      <div class="pipe-name accent">Write</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-box">
+      <div class="pipe-label">Gemini</div>
+      <div class="pipe-name accent3">Image</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-box">
+      <div class="pipe-label">Node.js</div>
+      <div class="pipe-name">Build</div>
+    </div>
+    <div class="pipe-arrow">&#8594;</div>
+    <div class="pipe-box active">
+      <div class="pipe-label">GitHub</div>
+      <div class="pipe-name">Live</div>
+    </div>
+  </div>
+  <div style="margin-top:3rem; display:flex; gap:4rem;">
+    <div>
+      <div class="big-number" style="font-size:5rem;">3</div>
+      <div style="font-size:1.2rem; color:var(--dim);">AI models</div>
+    </div>
+    <div>
+      <div class="big-number" style="font-size:5rem; color:var(--accent2);">1</div>
+      <div style="font-size:1.2rem; color:var(--dim);">script file</div>
+    </div>
+    <div>
+      <div class="big-number" style="font-size:5rem; color:var(--accent3);">0</div>
+      <div style="font-size:1.2rem; color:var(--dim);">dependencies</div>
+    </div>
+    <div>
+      <div class="big-number" style="font-size:5rem; color:#a78bfa;">90s</div>
+      <div style="font-size:1.2rem; color:var(--dim);">per article</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== SLIDE 16: END ========== -->
+<div class="slide slide-section" data-slide="16">
+  <h2 style="font-size:3.5rem;">nichtagentur.github.io/<span class="accent">franz-ai-blog</span></h2>
+  <p class="subtitle" style="text-align:center; margin-top:1rem;">Fully automated. Always fresh. $0.11/article.</p>
+</div>
+
+</body>
+</html>

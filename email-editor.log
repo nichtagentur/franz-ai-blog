@@ -1,0 +1,25 @@
+=== Franz AI Blog Email Editor ===
+Polling: support@nichtagentur.at every 30s
+Accepting emails from: franz.enzenhofer@fullstackoptimization.com
+Blog: https://nichtagentur.github.io/franz-ai-blog
+
+[12:21:15 PM] Poll #1 -- inbox OK, no new mail
+
+[12:21:45 PM] 1 new email(s)!
+  From: franz enzenhofer <franz.enzenhofer@fullstackoptimization.com>
+  Subject: hey
+  Intent: write_article
+  Writing article about: AI blog post (unspecified topic)
+[3/8] Writing article with Claude...
+  Title: "Stop Asking AI What to Write About - Start Solving Real Problems"
+[4/8] Validating source URLs...
+   OK   [200] https://developers.google.com/search/docs/fundamentals/creating-helpful-content
+
+[5/8] Quality gate (E-E-A-T check)...
+   E-E-A-T score: 6/10
+   Suggestions: Expand to 400-600 word count (currently 391 words) to meet content depth expectations; Add author bio or credentials to establish personal expertise and experience in content strategy; Include at least one cited source or data point to support claims about 'businesses drowning in AI content'; Provide specific case studies or examples demonstrating real problem-solving outcomes; Add author credentials/byline to strengthen authoritativeness - currently appears bylined only as 'Franz'; Include YMYL considerations: content advising business strategy should cite industry research or statistics
+   Score below 7 -- rewriting with Claude Sonnet...
+   Rewrite complete. New title: "Stop Asking AI What to Write About - Start Solving Real Problems"
+
+[6/8] Generating featured image with Gemini...
+   Image saved: /home/student/Projects/franz-ai-blog/docs/articles/2026-02-26-stop-asking-ai-what-to-write-start-solving-problems/featured.png

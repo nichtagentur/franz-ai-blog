@@ -85,13 +85,54 @@ function imapGreeting(sock) {
 }
 
 // Check inbox for unseen emails, return array of {seqNum, from, subject, body}
+// Check a single mailbox folder for unseen emails
+async function checkFolder(sock, tag, folderName) {
+  const emails = [];
+
+  let t = tag();
+  let res = await imapCommand(sock, t, `SELECT ${folderName}`);
+  if (res.includes(t + ' NO')) return emails; // folder doesn't exist
+
+  // Search for unseen messages
+  t = tag();
+  res = await imapCommand(sock, t, 'SEARCH UNSEEN');
+
+  const searchLine = res.split('\r\n').find(l => l.startsWith('* SEARCH'));
+  if (!searchLine || searchLine.trim() === '* SEARCH') return emails;
+
+  const seqNums = searchLine.replace('* SEARCH', '').trim().split(/\s+/).filter(Boolean);
+
+  for (const seqNum of seqNums) {
+    t = tag();
+    res = await imapCommand(sock, t, `FETCH ${seqNum} (BODY[HEADER.FIELDS (FROM SUBJECT DATE TO CONTENT-TRANSFER-ENCODING CONTENT-TYPE)] BODY[TEXT])`);
+
+    const email = parseImapFetch(res, seqNum);
+    email._folder = folderName;
+
+    // Check sender
+    if (!isAllowedSender(email.from)) {
+      console.log(`  Ignored email from: ${email.from} (${folderName})`);
+      t = tag();
+      await imapCommand(sock, t, `STORE ${seqNum} +FLAGS (\\Seen)`);
+      continue;
+    }
+
+    // Mark as seen
+    t = tag();
+    await imapCommand(sock, t, `STORE ${seqNum} +FLAGS (\\Seen)`);
+
+    emails.push(email);
+  }
+
+  return emails;
+}
+
 async function checkInbox() {
   let sock;
   try {
     sock = await imapConnect();
     await imapGreeting(sock);
 
-    // Login
     let tagNum = 1;
     const tag = () => 'A' + String(tagNum++).padStart(3, '0');
 
@@ -101,48 +142,10 @@ async function checkInbox() {
       throw new Error(`IMAP login failed for ${imapUser}`);
     }
 
-    // Select inbox
-    t = tag();
-    await imapCommand(sock, t, 'SELECT INBOX');
-
-    // Search for unseen messages
-    t = tag();
-    res = await imapCommand(sock, t, 'SEARCH UNSEEN');
-
-    // Parse SEARCH response: "* SEARCH 1 5 9"
-    const searchLine = res.split('\r\n').find(l => l.startsWith('* SEARCH'));
-    if (!searchLine || searchLine.trim() === '* SEARCH') {
-      // No unseen messages
-      t = tag();
-      sock.write(t + ' LOGOUT\r\n');
-      sock.end();
-      return [];
-    }
-
-    const seqNums = searchLine.replace('* SEARCH', '').trim().split(/\s+/).filter(Boolean);
+    // Check both INBOX and Junk folder (emails from external domains often land in Junk)
     const emails = [];
-
-    for (const seqNum of seqNums) {
-      // Fetch headers and body
-      t = tag();
-      res = await imapCommand(sock, t, `FETCH ${seqNum} (BODY[HEADER.FIELDS (FROM SUBJECT DATE TO CONTENT-TRANSFER-ENCODING CONTENT-TYPE)] BODY[TEXT])`);
-
-      const email = parseImapFetch(res, seqNum);
-
-      // Check sender
-      if (!isAllowedSender(email.from)) {
-        console.log(`  Ignored email from: ${email.from}`);
-        t = tag();
-        await imapCommand(sock, t, `STORE ${seqNum} +FLAGS (\\Seen)`);
-        continue;
-      }
-
-      // Mark as seen
-      t = tag();
-      await imapCommand(sock, t, `STORE ${seqNum} +FLAGS (\\Seen)`);
-
-      emails.push(email);
-    }
+    emails.push(...await checkFolder(sock, tag, 'INBOX'));
+    emails.push(...await checkFolder(sock, tag, 'Junk'));
 
     // Logout
     t = tag();

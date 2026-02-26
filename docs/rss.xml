@@ -54,5 +54,13 @@
       <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
       <description><![CDATA[New benchmarks show Anthropic's Claude Sonnet 4.6 outperforms premium Opus 4.6 on business tasks while staying cost-efficient. Expert analysis reveals the changing AI landscape.]]></description>
     </item>
+
+    <item>
+      <title><![CDATA[Stop Asking AI What to Write About - Start Solving Real Problems]]></title>
+      <link>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-stop-asking-ai-what-to-write-start-solving-problems/</link>
+      <guid>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-stop-asking-ai-what-to-write-start-solving-problems/</guid>
+      <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
+      <description><![CDATA[Businesses are drowning in AI content without purpose. Here's why you should focus on solving customer problems, not feeding the content machine.]]></description>
+    </item>
 </channel>
 </rss>
