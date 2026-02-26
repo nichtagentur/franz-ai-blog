@@ -105,7 +105,7 @@ async function writeArticle(topic) {
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      max_tokens: 2048,
       messages: [{
         role: 'user',
         content: `You are Franz Enzenhofer, a digital strategist and AI tools expert writing for your blog "Franz AI Blog". Write a professional, insightful article about the following AI business news.
@@ -115,12 +115,13 @@ DETAILS: ${topic.summary}
 SOURCES: ${(topic.sources || []).join(', ')}
 
 REQUIREMENTS:
-- Write 1500-2500 words, authoritative but accessible to business readers
+- Write 400-600 words MAX. Short, punchy, scannable.
+- Start with a bold TL;DR (1-2 sentences, the key takeaway upfront)
+- Get to the point fast -- no filler, no padding
 - Use a strong editorial voice -- opinionated, practical, no fluff
-- Include practical implications for businesses
+- 2-3 short H2 sections maximum
+- Include 1-2 practical takeaways for businesses
 - Reference sources naturally in the text
-- Structure with clear H2 headings
-- Include specific examples and actionable takeaways
 
 Return ONLY valid JSON (no markdown fences, no extra text):
 {

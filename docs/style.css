@@ -445,14 +445,28 @@ img { max-width: 100%; height: auto; display: block; }
   max-width: var(--content-width);
   margin: 0 auto;
   animation: fadeUp 0.6s var(--ease-out) 0.2s both;
+  font-size: 1.2rem;
+  line-height: 1.9;
 }
 
-/* Drop cap on first paragraph */
-.article-body > p:first-of-type::first-letter {
+/* TL;DR box -- first bold paragraph or explicit tldr */
+.article-body > p:first-of-type {
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 500;
+  line-height: 1.7;
+  padding: 1.25rem 1.5rem;
+  background: var(--rule-faint);
+  border-left: 4px solid var(--accent);
+  margin-bottom: 2rem;
+}
+
+/* Drop cap on second paragraph (after TL;DR) */
+.article-body > p:nth-of-type(2)::first-letter {
   font-family: var(--font-display);
   font-weight: 900;
   float: left;
-  font-size: 4.5rem;
+  font-size: 4.2rem;
   line-height: 0.75;
   padding-right: 0.12em;
   padding-top: 0.08em;
@@ -484,8 +498,7 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .article-body p {
-  margin-bottom: 1.35rem;
-  font-size: 1.05rem;
+  margin-bottom: 1.5rem;
 }
 
 .article-body ul, .article-body ol {
