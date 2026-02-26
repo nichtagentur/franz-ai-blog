@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+  <title>Franz AI Blog</title>
+  <link>https://nichtagentur.github.io/franz-ai-blog/</link>
+  <description>Practical AI tools, workflows, and strategies for business.</description>
+  <language>en</language>
+  <atom:link href="https://nichtagentur.github.io/franz-ai-blog/rss.xml" rel="self" type="application/rss+xml"/>
+  
+    <item>
+      <title><![CDATA[Claude Opus 4.6 Thinking: The Game-Changer for Complex Tasks]]></title>
+      <link>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-claude-opus-4-6-thinking-model-problem-solving-champion/</link>
+      <guid>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-claude-opus-4-6-thinking-model-problem-solving-champion/</guid>
+      <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
+      <description><![CDATA[Anthropic's Claude Opus 4.6 Thinking model tops problem-solving rankings. Why this extended reasoning breakthrough matters for business strategy and operations.]]></description>
+    </item>
+
+    <item>
+      <title><![CDATA[Google Gemini 3.1 Pro: The AI Reasoning Breakthrough That Changes Everything]]></title>
+      <link>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-google-gemini-31-pro-ai-reasoning-breakthrough-business-impa/</link>
+      <guid>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-google-gemini-31-pro-ai-reasoning-breakthrough-business-impa/</guid>
+      <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
+      <description><![CDATA[Google's Gemini 3.1 Pro achieves 77.1% on ARC-AGI-2 benchmark, marking a 2.5x improvement. What this AI reasoning breakthrough means for your business strategy.]]></description>
+    </item>
+
+    <item>
+      <title><![CDATA[Anthropic's Code Security Tool: Game-Changer or Hype?]]></title>
+      <link>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-anthropic-claude-code-security-enterprise-impact/</link>
+      <guid>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-anthropic-claude-code-security-enterprise-impact/</guid>
+      <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
+      <description><![CDATA[Anthropic launches Claude Code Security for autonomous bug hunting. Franz Enzenhofer analyzes what this means for enterprise cybersecurity strategy.]]></description>
+    </item>
+</channel>
+</rss>

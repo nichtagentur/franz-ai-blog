@@ -104,7 +104,7 @@ async function writeArticle(topic) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-5-20250514',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 4096,
       messages: [{
         role: 'user',
