@@ -15,6 +15,13 @@ const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY_1;
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
+// SMTP config for email notifications
+const SMTP_HOST = process.env.SMTP_HOST || 'mail.easyname.eu';
+const SMTP_USER = process.env.SMTP_USER || 'i-am-a-user@nichtagentur.at';
+const SMTP_PASS = process.env.SMTP_PASS || 'i_am_an_AI_password_2026';
+const EMAIL_FROM = 'ai-assistent@nichtagentur.at';
+const EMAIL_TO = 'franz.enzenhofer@fullstackoptimization.com';
+
 // --------------- Helpers ---------------
 
 function loadArticles() {
@@ -64,7 +71,7 @@ function md2html(md) {
 // --------------- API Calls ---------------
 
 async function discoverNews(existingTitles) {
-  console.log('[1/5] Discovering trending AI business news...');
+  console.log('[1/8] Discovering trending AI business news...');
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -95,7 +102,7 @@ Return ONLY a JSON array of 5 objects, no other text:
 }
 
 async function writeArticle(topic) {
-  console.log('[2/5] Writing article with Claude...');
+  console.log('[3/8] Writing article with Claude...');
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -145,7 +152,7 @@ Return ONLY valid JSON (no markdown fences, no extra text):
 }
 
 async function generateImage(prompt, outputPath) {
-  console.log('[3/5] Generating featured image with Gemini...');
+  console.log('[6/8] Generating featured image with Gemini...');
   const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${GEMINI_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -178,6 +185,272 @@ async function generateImage(prompt, outputPath) {
   const minPng = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
   fs.writeFileSync(outputPath, minPng);
   return false;
+}
+
+// --------------- New Quality Pipeline Steps ---------------
+
+// Step 2: Verify topic is real using Claude Haiku
+async function verifyTopic(topics) {
+  console.log('[2/8] Verifying topics are real news...');
+  for (const topic of topics.slice(0, 5)) {
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': ANTHROPIC_KEY,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 256,
+          messages: [{
+            role: 'user',
+            content: `Is this AI news real and from the last 48 hours? Rate confidence 1-10.
+
+Topic: ${topic.topic}
+Summary: ${topic.summary}
+Sources: ${(topic.sources || []).join(', ')}
+
+Return ONLY JSON: {"confidence": 8, "reason": "short reason"}`
+          }],
+        }),
+      });
+      const data = await res.json();
+      const text = data.content?.[0]?.text || '';
+      const match = text.match(/\{[\s\S]*\}/);
+      if (match) {
+        const result = JSON.parse(match[0]);
+        topic._confidence = result.confidence;
+        console.log(`   "${topic.topic}" -- confidence: ${result.confidence}/10`);
+        if (result.confidence >= 7) {
+          console.log(`   PASSED -- using this topic\n`);
+          return topic;
+        }
+      }
+    } catch (e) {
+      console.log(`   Warning: verification failed for "${topic.topic}": ${e.message}`);
+    }
+  }
+  // Fallback: use first topic with warning
+  console.log('   WARNING: No topic scored >= 7, using first topic anyway\n');
+  topics[0]._confidence = topics[0]._confidence || 0;
+  return topics[0];
+}
+
+// Step 4: Validate source URLs with HEAD requests
+async function validateURLs(sources) {
+  console.log('[4/8] Validating source URLs...');
+  if (!sources || sources.length === 0) {
+    console.log('   No sources to validate\n');
+    return { results: [], allDead: false };
+  }
+  const results = await Promise.all(sources.map(async (src) => {
+    const url = src.url || src;
+    const name = src.name || url;
+    try {
+      const res = await fetch(url, {
+        method: 'HEAD',
+        signal: AbortSignal.timeout(5000),
+        redirect: 'follow',
+      });
+      const ok = [200, 301, 302, 403].includes(res.status);
+      console.log(`   ${ok ? 'OK  ' : 'DEAD'} [${res.status}] ${url}`);
+      return { name, url, status: res.status, ok };
+    } catch (e) {
+      console.log(`   DEAD [ERR] ${url} -- ${e.message}`);
+      return { name, url, status: 0, ok: false };
+    }
+  }));
+  const allDead = results.length > 0 && results.every(r => !r.ok);
+  if (allDead) console.log('   WARNING: All source URLs are dead!');
+  console.log('');
+  return { results, allDead };
+}
+
+// Step 5: E-E-A-T quality gate -- rate and optionally rewrite
+async function checkQuality(article, articleData, urlResults) {
+  console.log('[5/8] Quality gate (E-E-A-T check)...');
+  const wordCount = (articleData.content || '').split(/\s+/).length;
+
+  // Ask Haiku to rate
+  const rateRes = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': ANTHROPIC_KEY,
+      'anthropic-version': '2023-06-01',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 512,
+      messages: [{
+        role: 'user',
+        content: `Rate this article for Google E-E-A-T quality (Experience, Expertise, Authoritativeness, Trustworthiness). Score 1-10.
+
+Title: ${articleData.title} (${articleData.title.length} chars)
+Meta: ${articleData.metaDescription} (${articleData.metaDescription.length} chars)
+Word count: ${wordCount}
+Dead source URLs: ${urlResults.results.filter(r => !r.ok).length}/${urlResults.results.length}
+Content preview: ${(articleData.content || '').slice(0, 500)}
+
+Check: title 50-65 chars, meta 120-160 chars, 400-600 words, sources cited, no fluff.
+
+Return ONLY JSON: {"score": 8, "suggestions": ["suggestion 1", "suggestion 2"]}`
+      }],
+    }),
+  });
+  const rateData = await rateRes.json();
+  const rateText = rateData.content?.[0]?.text || '';
+  const rateMatch = rateText.match(/\{[\s\S]*\}/);
+  let score = 7;
+  let suggestions = [];
+  if (rateMatch) {
+    const parsed = JSON.parse(rateMatch[0]);
+    score = parsed.score || 7;
+    suggestions = parsed.suggestions || [];
+  }
+  console.log(`   E-E-A-T score: ${score}/10`);
+  if (suggestions.length) console.log(`   Suggestions: ${suggestions.join('; ')}`);
+
+  // If score < 7, attempt one rewrite with Sonnet
+  if (score < 7) {
+    console.log('   Score below 7 -- rewriting with Claude Sonnet...');
+    try {
+      const rewriteRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': ANTHROPIC_KEY,
+          'anthropic-version': '2023-06-01',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2048,
+          messages: [{
+            role: 'user',
+            content: `Rewrite this article to improve its quality. Apply these suggestions:
+${suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+Current article JSON:
+${JSON.stringify(articleData)}
+
+Return the COMPLETE rewritten article as valid JSON with the same structure (title, metaDescription, slug, content, tags, sources, imagePrompt). No markdown fences.`
+          }],
+        }),
+      });
+      const rewriteData = await rewriteRes.json();
+      const rewriteText = rewriteData.content?.[0]?.text || '';
+      const rewriteMatch = rewriteText.match(/\{[\s\S]*\}/);
+      if (rewriteMatch) {
+        articleData = JSON.parse(rewriteMatch[0]);
+        console.log(`   Rewrite complete. New title: "${articleData.title}"\n`);
+      }
+    } catch (e) {
+      console.log(`   Rewrite failed: ${e.message} -- using original\n`);
+    }
+  } else {
+    console.log('   PASSED\n');
+  }
+  return { score, suggestions, articleData };
+}
+
+// Step 8: Send email notification via SMTP (zero deps, raw sockets)
+async function sendEmailNotification(summary) {
+  console.log('[8/8] Sending email notification...');
+  const net = require('net');
+  const tls = require('tls');
+
+  const { title, url, qualityScore, topicConfidence, urlResults, warnings } = summary;
+
+  const urlLines = (urlResults.results || []).map(r =>
+    `  ${r.ok ? 'OK  ' : 'DEAD'} [${r.status || 'ERR'}] ${r.url}`
+  ).join('\r\n');
+
+  const body = [
+    `New article published on Franz AI Blog`,
+    ``,
+    `Title: ${title}`,
+    `URL: ${url}`,
+    `Quality Score: ${qualityScore}/10`,
+    `Topic Confidence: ${topicConfidence}/10`,
+    ``,
+    `Sources checked: ${urlResults.results.length}`,
+    urlLines || '  (none)',
+    ``,
+    warnings.length ? `Warnings:\r\n${warnings.map(w => '  - ' + w).join('\r\n')}` : 'No warnings.',
+    ``,
+    `-- Franz AI Blog Generator`,
+  ].join('\r\n');
+
+  const subject = `New Article: ${title}`;
+  const date = new Date().toUTCString();
+  const msg = [
+    `From: Franz AI Blog <${SMTP_USER}>`,
+    `To: ${EMAIL_TO}`,
+    `Subject: ${subject}`,
+    `Date: ${date}`,
+    `MIME-Version: 1.0`,
+    `Content-Type: text/plain; charset=UTF-8`,
+    ``,
+    body,
+  ].join('\r\n');
+
+  try {
+    await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('SMTP timeout')), 30000);
+      const sock = net.createConnection(587, SMTP_HOST);
+      let tlsSock = null;
+      let step = 0;
+
+      function send(data) { (tlsSock || sock).write(data + '\r\n'); }
+
+      function onData(chunk) {
+        const lines = chunk.toString();
+        // Catch SMTP errors (4xx/5xx) at any step
+        if (/^[45]\d\d /.test(lines) && step > 2) {
+          clearTimeout(timeout);
+          reject(new Error(`SMTP error at step ${step}: ${lines.trim()}`));
+          return;
+        }
+        if (step === 0 && lines.startsWith('220')) {
+          step++; send(`EHLO localhost`);
+        } else if (step === 1 && lines.includes('250')) {
+          step++; send('STARTTLS');
+        } else if (step === 2 && lines.startsWith('220')) {
+          step++;
+          tlsSock = tls.connect({ socket: sock, servername: SMTP_HOST }, () => {
+            send('EHLO localhost');
+          });
+          tlsSock.on('data', onData);
+          tlsSock.on('error', reject);
+        } else if (step === 3 && lines.includes('250')) {
+          step++;
+          const creds = Buffer.from(`\0${SMTP_USER}\0${SMTP_PASS}`).toString('base64');
+          send(`AUTH PLAIN ${creds}`);
+        } else if (step === 4 && lines.startsWith('235')) {
+          step++; send(`MAIL FROM:<${SMTP_USER}>`);
+        } else if (step === 5 && lines.startsWith('250')) {
+          step++; send(`RCPT TO:<${EMAIL_TO}>`);
+        } else if (step === 6 && lines.startsWith('250')) {
+          step++; send('DATA');
+        } else if (step === 7 && lines.startsWith('354')) {
+          step++; send(msg + '\r\n.');
+        } else if (step === 8 && lines.startsWith('250')) {
+          step++; send('QUIT');
+          clearTimeout(timeout);
+          resolve();
+        }
+      }
+
+      sock.on('data', onData);
+      sock.on('error', reject);
+      sock.on('close', () => { clearTimeout(timeout); });
+    });
+    console.log(`   Email sent to ${EMAIL_TO}\n`);
+  } catch (e) {
+    console.log(`   WARNING: Email failed: ${e.message} -- continuing anyway\n`);
+  }
 }
 
 // --------------- Build HTML ---------------
@@ -290,13 +563,20 @@ async function main() {
   const news = await discoverNews(existingTitles);
   console.log(`   Found ${news.length} topics\n`);
 
-  // Step 2: Pick best unused topic (first one not matching existing)
-  const topic = news[0];
-  console.log(`   Selected: "${topic.topic}"\n`);
+  // Step 2: Verify topic is real
+  const topic = await verifyTopic(news);
+  const topicConfidence = topic._confidence || 0;
 
   // Step 3: Write article
-  const articleData = await writeArticle(topic);
+  let articleData = await writeArticle(topic);
   console.log(`   Title: "${articleData.title}"\n`);
+
+  // Step 4: Validate source URLs
+  const urlResults = await validateURLs(articleData.sources || []);
+
+  // Step 5: Quality gate (E-E-A-T)
+  const quality = await checkQuality(null, articleData, urlResults);
+  articleData = quality.articleData; // may be rewritten
 
   // Build article metadata
   const slug = today() + '-' + slugify(articleData.slug || articleData.title);
@@ -311,14 +591,16 @@ async function main() {
     displayDate: displayDate(),
     tags: articleData.tags || ['AI Tools'],
     sources: articleData.sources || [],
+    qualityScore: quality.score,
+    topicConfidence: topicConfidence,
   };
 
-  // Step 4: Generate image
+  // Step 6: Generate image
   const imagePath = path.join(articleDir, 'featured.png');
   await generateImage(articleData.imagePrompt || topic.topic, imagePath);
 
-  // Step 5: Build and write all HTML
-  console.log('[4/5] Building HTML pages...');
+  // Step 7: Build and write all HTML
+  console.log('[7/8] Building HTML pages...');
 
   // Article page
   const articleHtml = buildArticlePage(article, articleData);
@@ -340,14 +622,42 @@ async function main() {
 
   console.log('   All pages built.\n');
 
-  // Step 6: Git commit
-  console.log('[5/5] Done! Article published.\n');
+  // Step 8: Email notification
+  const warnings = [];
+  if (topicConfidence < 7) warnings.push(`Low topic confidence: ${topicConfidence}/10`);
+  if (urlResults.allDead) warnings.push('All source URLs are dead');
+  if (quality.score < 7) warnings.push(`Low quality score after rewrite: ${quality.score}/10`);
+
+  await sendEmailNotification({
+    title: article.title,
+    url: `${BASE_URL}/articles/${slug}/`,
+    qualityScore: quality.score,
+    topicConfidence,
+    urlResults,
+    warnings,
+  });
+
+  console.log('Done! Article published.\n');
   console.log(`   Slug: ${slug}`);
   console.log(`   Path: docs/articles/${slug}/`);
-  console.log(`   URL:  ${BASE_URL}/articles/${slug}/\n`);
+  console.log(`   URL:  ${BASE_URL}/articles/${slug}/`);
+  console.log(`   Quality: ${quality.score}/10 | Confidence: ${topicConfidence}/10\n`);
 }
 
-main().catch(err => {
-  console.error('Error:', err.message);
-  process.exit(1);
-});
+// Run if called directly, export if required as module
+if (require.main === module) {
+  main().catch(err => {
+    console.error('Error:', err.message);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  DOCS, TEMPLATES, ARTICLES_JSON, BASE_URL,
+  ANTHROPIC_KEY, GEMINI_KEY, OPENROUTER_KEY,
+  SMTP_HOST, SMTP_USER, SMTP_PASS, EMAIL_FROM, EMAIL_TO,
+  loadArticles, saveArticles, slugify, today, displayDate, md2html,
+  discoverNews, writeArticle, verifyTopic, validateURLs, checkQuality,
+  generateImage, sendEmailNotification,
+  buildArticlePage, buildHomepage, buildRSS, buildSitemap,
+};
