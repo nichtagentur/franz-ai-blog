@@ -22,7 +22,7 @@ const IMAP_PORT = 993;
 const IMAP_USER = process.env.IMAP_USER || 'support@nichtagentur.at';
 const IMAP_PASS = process.env.IMAP_PASS || process.env.SMTP_PASS || 'i_am_an_AI_password_2026';
 
-const ALLOWED_SENDER = 'franz.enzenhofer@fullstackoptimization.com';
+const ALLOWED_SENDER = process.env.ALLOWED_SENDER || 'franz.enzenhofer@fullstackoptimization.com';
 const POLL_INTERVAL = 30000; // 30 seconds
 const EDITOR_EMAIL = 'ai-assistent@nichtagentur.at'; // reply-from address
 
