@@ -80,21 +80,82 @@
     ]
   },
   {
-    "title": "Google Flow AI Gets Lasso Tool: Real Creative Control Finally",
-    "metaDescription": "Google Flow AI's February updates bring precision editing with lasso tool and workflow improvements. Here's what creators and businesses need to know.",
-    "slug": "2026-02-26-google-flow-ai-lasso-tool-updates-february-2026",
+    "title": "WordPress Launches Native AI Assistant, Disrupting Third-Party Plugin Market",
+    "metaDescription": "WordPress's built-in AI assistant launched February 2026 enables content generation, image creation, and layout design directly in the editor. Comprehensive analysis of features, limitations, and business impact.",
+    "slug": "2026-02-26-wordpress-built-in-ai-assistant-launch-2026",
     "date": "2026-02-26",
     "displayDate": "February 26, 2026",
     "tags": [
-      "Google Flow AI",
-      "AI content creation",
-      "creative workflows"
+      "WordPress",
+      "AI Assistant",
+      "Content Management",
+      "Business Productivity",
+      "AI Tools",
+      "Plugin Development"
     ],
     "sources": [
       {
-        "name": "Google AI Blog",
-        "url": "https://blog.google/innovation-and-ai/models-and-research/google-labs/flow-updates-february-2026/"
+        "name": "WordPress.org Official Announcement",
+        "url": "https://wordpress.org/news/2026/02/introducing-native-ai-assistant/"
+      },
+      {
+        "name": "Data Science Training - AI Tools February 2026",
+        "url": "https://www.datasciencetraining.co.in/latest-ai-tools-launched-in-february-2026-you-must-know/"
+      },
+      {
+        "name": "MarketingProfs AI Update",
+        "url": "https://www.marketingprofs.com/opinions/2026/54328/ai-update-february-20-2026-ai-news-and-views-from-the-past-week"
+      },
+      {
+        "name": "WordPress Usage Statistics",
+        "url": "https://wordpress.org/about/stats/"
       }
-    ]
+    ],
+    "qualityScore": 5,
+    "topicConfidence": 1
+  },
+  {
+    "title": "Claude Sonnet 4.6: Anthropic's Mainstream AI Just Beat Premium Models in Independent Testing",
+    "metaDescription": "New benchmarks show Anthropic's Claude Sonnet 4.6 outperforms premium Opus 4.6 on business tasks while staying cost-efficient. Expert analysis reveals the changing AI landscape.",
+    "slug": "2026-02-26-claude-sonnet-4-6-beats-premium-models",
+    "date": "2026-02-26",
+    "displayDate": "February 26, 2026",
+    "tags": [
+      "Claude",
+      "Anthropic",
+      "AI Models",
+      "Business Strategy",
+      "Cost Efficiency",
+      "AI Benchmarks",
+      "Performance Testing"
+    ],
+    "sources": [
+      {
+        "name": "Berkeley Function-Calling Leaderboard",
+        "url": "https://gorilla.cs.berkeley.edu/leaderboard.html"
+      },
+      {
+        "name": "HumanEval Coding Benchmark Results",
+        "url": "https://github.com/openai/human-eval"
+      },
+      {
+        "name": "RULER Long-Context Benchmark",
+        "url": "https://arxiv.org/abs/2404.06654"
+      },
+      {
+        "name": "WebArena GUI Navigation Benchmark",
+        "url": "https://webarena.dev/"
+      },
+      {
+        "name": "Chatbot Arena Model Rankings",
+        "url": "https://chat.lmsys.org/?leaderboard"
+      },
+      {
+        "name": "MIT CSAIL AI Research Publications",
+        "url": "https://www.csail.mit.edu/research/artificial-intelligence"
+      }
+    ],
+    "qualityScore": 6,
+    "topicConfidence": 2
   }
 ]
