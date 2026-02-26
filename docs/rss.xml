@@ -78,5 +78,13 @@
       <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
       <description><![CDATA[Behind the scenes: How Franz AI Blog uses email as an interface for AI-powered content creation. Simple, practical, and surprisingly effective workflow that reduced content creation time by 75%.]]></description>
     </item>
+
+    <item>
+      <title><![CDATA[Deloitte's AI Value Toolkit: A Strategic Framework for Moving Beyond Pilot Purgatory]]></title>
+      <link>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-deloitte-ai-value-toolkit-implementation-guide/</link>
+      <guid>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-deloitte-ai-value-toolkit-implementation-guide/</guid>
+      <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
+      <description><![CDATA[Deloitte's new AI Value Toolkit provides enterprises with proven methodologies to transition from AI experimentation to measurable business value. Expert analysis and implementation insights.]]></description>
+    </item>
 </channel>
 </rss>
