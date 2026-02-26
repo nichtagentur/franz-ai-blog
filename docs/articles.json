@@ -273,5 +273,35 @@
     ],
     "qualityScore": 5,
     "topicConfidence": 1
+  },
+  {
+    "title": "Google Pomelli AI Content Generator: Early Beta Analysis and Current Limitations",
+    "metaDescription": "An analysis of Google's Pomelli AI content tool beta, examining its website analysis capabilities, availability constraints, and potential business applications with expert insights.",
+    "slug": "2026-02-26-google-pomelli-ai-content-generator-beta-analysis",
+    "date": "2026-02-26",
+    "displayDate": "February 26, 2026",
+    "tags": [
+      "Google AI",
+      "content marketing",
+      "beta analysis",
+      "AI tools",
+      "brand consistency"
+    ],
+    "sources": [
+      {
+        "name": "Google Labs Official Documentation",
+        "url": "https://labs.google.com"
+      },
+      {
+        "name": "Stanford Human-Centered AI Institute",
+        "url": "https://hai.stanford.edu"
+      },
+      {
+        "name": "Digital Marketing Institute Research",
+        "url": "https://digitalmarketinginstitute.com/research"
+      }
+    ],
+    "qualityScore": 5,
+    "topicConfidence": 1
   }
 ]

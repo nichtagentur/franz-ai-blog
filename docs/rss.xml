@@ -86,5 +86,13 @@
       <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
       <description><![CDATA[Deloitte's new AI Value Toolkit provides enterprises with proven methodologies to transition from AI experimentation to measurable business value. Expert analysis and implementation insights.]]></description>
     </item>
+
+    <item>
+      <title><![CDATA[Google Pomelli AI Content Generator: Early Beta Analysis and Current Limitations]]></title>
+      <link>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-google-pomelli-ai-content-generator-beta-analysis/</link>
+      <guid>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-google-pomelli-ai-content-generator-beta-analysis/</guid>
+      <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
+      <description><![CDATA[An analysis of Google's Pomelli AI content tool beta, examining its website analysis capabilities, availability constraints, and potential business applications with expert insights.]]></description>
+    </item>
 </channel>
 </rss>
