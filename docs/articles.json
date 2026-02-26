@@ -78,5 +78,23 @@
         "url": "https://techcrunch.com/2026/02/24/new-relic-launches-new-ai-agent-platform-and-opentelemetry-tools/"
       }
     ]
+  },
+  {
+    "title": "Google Flow AI Gets Lasso Tool: Real Creative Control Finally",
+    "metaDescription": "Google Flow AI's February updates bring precision editing with lasso tool and workflow improvements. Here's what creators and businesses need to know.",
+    "slug": "2026-02-26-google-flow-ai-lasso-tool-updates-february-2026",
+    "date": "2026-02-26",
+    "displayDate": "February 26, 2026",
+    "tags": [
+      "Google Flow AI",
+      "AI content creation",
+      "creative workflows"
+    ],
+    "sources": [
+      {
+        "name": "Google AI Blog",
+        "url": "https://blog.google/innovation-and-ai/models-and-research/google-labs/flow-updates-february-2026/"
+      }
+    ]
   }
 ]
