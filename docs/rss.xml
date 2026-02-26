@@ -30,5 +30,13 @@
       <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
       <description><![CDATA[Anthropic launches Claude Code Security for autonomous bug hunting. Franz Enzenhofer analyzes what this means for enterprise cybersecurity strategy.]]></description>
     </item>
+
+    <item>
+      <title><![CDATA[New Relic's Agentic Platform: Real AI for Real Problems]]></title>
+      <link>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-new-relic-agentic-platform-enterprise-ai-observability/</link>
+      <guid>https://nichtagentur.github.io/franz-ai-blog/articles/2026-02-26-new-relic-agentic-platform-enterprise-ai-observability/</guid>
+      <pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate>
+      <description><![CDATA[New Relic's Agentic Platform brings no-code AI agents to enterprise observability. Here's why this matters more than the typical AI hype cycle.]]></description>
+    </item>
 </channel>
 </rss>

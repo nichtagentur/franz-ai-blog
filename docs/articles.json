@@ -58,5 +58,25 @@
         "url": "https://fortune.com/2026/02/20/exclusive-anthropic-rolls-out-ai-tool-that-can-hunt-software-bugs-on-its-own-including-the-most-dangerous-ones-humans-miss/"
       }
     ]
+  },
+  {
+    "title": "New Relic's Agentic Platform: Real AI for Real Problems",
+    "metaDescription": "New Relic's Agentic Platform brings no-code AI agents to enterprise observability. Here's why this matters more than the typical AI hype cycle.",
+    "slug": "2026-02-26-new-relic-agentic-platform-enterprise-ai-observability",
+    "date": "2026-02-26",
+    "displayDate": "February 26, 2026",
+    "tags": [
+      "AI agents",
+      "enterprise AI",
+      "observability",
+      "New Relic",
+      "no-code platforms"
+    ],
+    "sources": [
+      {
+        "name": "TechCrunch",
+        "url": "https://techcrunch.com/2026/02/24/new-relic-launches-new-ai-agent-platform-and-opentelemetry-tools/"
+      }
+    ]
   }
 ]
