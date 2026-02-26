@@ -210,5 +210,25 @@
     ],
     "qualityScore": 5,
     "topicConfidence": 10
+  },
+  {
+    "title": "Email-Driven AI Workflow: How This Blog Actually Works",
+    "metaDescription": "Behind the scenes: How Franz AI Blog uses email as an interface for AI-powered content creation. Simple, practical, and surprisingly effective workflow that reduced content creation time by 75%.",
+    "slug": "2026-02-26-email-driven-ai-editorial-workflow",
+    "date": "2026-02-26",
+    "displayDate": "February 26, 2026",
+    "tags": [
+      "AI workflow",
+      "content creation",
+      "email automation",
+      "productivity",
+      "content strategy"
+    ],
+    "sources": [
+      "University of California Irvine - Task Interruption and Resume Lag Research",
+      "McKinsey Global Institute - The Age of AI Report 2024"
+    ],
+    "qualityScore": 6,
+    "topicConfidence": 10
   }
 ]
