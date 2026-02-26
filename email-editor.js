@@ -129,6 +129,15 @@ async function checkFolder(sock, tag, folderName) {
       continue;
     }
 
+    // Skip our own replies (prevent reply loops)
+    const senderEmail = extractEmail(email.from);
+    if (senderEmail === SMTP_FROM && email.subject.startsWith('Re:')) {
+      console.log(`  Skipped own reply: ${email.subject} (${folderName})`);
+      t = tag();
+      await imapCommand(sock, t, `STORE ${seqNum} +FLAGS (\\Seen)`);
+      continue;
+    }
+
     t = tag();
     await imapCommand(sock, t, `STORE ${seqNum} +FLAGS (\\Seen)`);
     emails.push(email);
@@ -247,10 +256,15 @@ function extractTextPlain(body, boundary) {
 
 // --------------- Security ---------------
 
-function isAllowedSender(fromHeader) {
-  if (!fromHeader) return false;
+function extractEmail(fromHeader) {
+  if (!fromHeader) return '';
   const match = fromHeader.match(/<([^>]+)>/);
-  const email = (match ? match[1] : fromHeader.trim()).toLowerCase();
+  return (match ? match[1] : fromHeader.trim()).toLowerCase();
+}
+
+function isAllowedSender(fromHeader) {
+  const email = extractEmail(fromHeader);
+  if (!email) return false;
   return ALLOWED_SENDERS.some(s => s.toLowerCase() === email);
 }
 
