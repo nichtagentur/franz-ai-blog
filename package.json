@@ -1,0 +1,10 @@
+{
+  "name": "franz-ai-blog",
+  "version": "1.0.0",
+  "description": "Automated AI news blog by Franz Enzenhofer",
+  "main": "generate.js",
+  "scripts": {
+    "generate": "node generate.js"
+  },
+  "private": true
+}
